@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+   <head>
+      </head>
+   <body>
+      
+         <textarea rows = "40" cols="100" name = "Message" id ="myterm" onkeypress="onTermEnter();"></textarea>
+      
+      
+      <div id="sse">
+         <a href="javascript:SendToWebSocket()">Run WebSocket</a>
+      </div>
+      
+   
+	
+      <script type="text/javascript">
+         //document.getElementById("myterm").onkeypress = function() {onTermEnter()};
+
+         
+         
+         function SendToWebSocket()
+         {
+            if ("WebSocket" in window)
+            {
+               //alert("WebSocket is supported by your Browser!");
+               
+               // Let us open a web socket
+               var ws = new WebSocket("ws://localhost:8888/dockerterm");
+				
+               ws.onopen = function()
+               {
+                  // Web Socket is connected, send data using send()
+
+                  ws.send(document.getElementById("myterm").value);
+                  //alert("Message is sent...");
+               };
+				
+               ws.onmessage = function (evt) 
+               { 
+                  var received_msg = evt.data;
+                  //alert("Message is received...");
+                  PrintToTerm(received_msg);
+
+               };
+				
+               ws.onclose = function()
+               { 
+                  // websocket is closed.
+                  //alert("Connection is closed..."); 
+                  PrintToTerm("Connection is closed...")
+               };
+					
+               window.onbeforeunload = function(event) {
+                  ws.close();
+               };
+            }
+            
+            else
+            {
+               // The browser doesn't support WebSocket
+               alert("WebSocket NOT supported by your Browser!");
+            }
+         }
+
+         function PrintToTerm(data)
+         {
+            document.getElementById("myterm").value = data;
+         }
+
+         function onTermEnter()
+         {
+            var key = window.event.keyCode;
+            alert("inside");
+             // If the user has pressed enter
+             if (key === 13) {
+                 document.getElementById("myterm").value = document.getElementById("myterm").value + "\n*";
+                 PrintToTerm(document.getElementById("myterm").value);
+                 alert(document.getElementById("myterm").value)
+                 return false;
+             }
+             else {
+                 return true;
+             }
+         }
+
+         window.onload = function() {
+            var textArea = document.getElementById("myterm");
+            textArea.onkeypress = function(evt) {
+            evt = evt || window.event;
+
+            if (evt.keyCode == 13) {
+                SendToWebSocket();
+
+            }
+        };
+    };
+
+      </script>
+		</body>
+   
+</html>
