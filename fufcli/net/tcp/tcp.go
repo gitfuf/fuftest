@@ -1,16 +1,18 @@
-//Copyright © 2018 Fuf
+//Copyright © 2018 Fuf fufcli
 //for work with tcp tasks
 package tcp
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 	"io"
 	"log"
 	"net"
 )
 
-var proxyPort string
+var (
+	proxyPort string
+	closeC    chan bool //chanel to notify close connection
+)
 
 func SetProxyPort(p string) {
 	proxyPort = p
@@ -18,35 +20,40 @@ func SetProxyPort(p string) {
 
 func StartServer(port string) error {
 	proxyPort = port
-	ln, err := net.Listen("tcp", ":"+viper.GetString("port"))
+	closeC = make(chan bool) //in order to stop server
+
+	ln, err := net.Listen("tcp", ":"+viper.GetString("port")) //:7815
 	if err != nil {
 		log.Fatal(err)
-		fmt.Println("listen err", err)
 	}
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			log.Fatal(err)
-			fmt.Println("listen err", err)
 		}
 		go handleConnection(conn)
+
+		<-closeC
+		log.Println("connection with postgresql closed -> stop server")
+		conn.Close()
+		return nil
 	}
+
 }
 
 func handleConnection(incoming_conn net.Conn) {
 	endpoint := viper.GetString("proxy") + ":" + proxyPort //"192.168.99.100:7816"
-	//fmt.Println("endpoint", endpoint)
+	log.Println("handleconnection proxy endpoint = ", endpoint)
 	defer incoming_conn.Close()
 
 	dest_conn, err := net.Dial("tcp", endpoint)
 	if err != nil {
 		log.Fatal(err)
-		fmt.Println("Dial err", err)
 	}
-	//fmt.Println("connected to ", endpoint)
 	defer dest_conn.Close()
 	pipe(incoming_conn, dest_conn)
+	closeC <- true
 
 }
 
