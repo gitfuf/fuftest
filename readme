@@ -1,0 +1,16 @@
+# fuftest
+This is a test proxy suite for docker postgres containers
+
+There are two program:
+1)Cli program fufcli:
+
+Get list of running docker containers (postgres): 
+fufcli container ls
+
+Request connection for specified docker postgres: 
+fufcli  proxy <container name or ID>
+If request success can use sql -h localhost -p 7815 etc for connection.
+
+2)Proxy server fufproxy:
+Console program, can be run as background process
+It is process requests from cli for sql connection to specified docker postgresql. 
