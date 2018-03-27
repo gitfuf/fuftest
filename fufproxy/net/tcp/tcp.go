@@ -3,60 +3,54 @@
 package tcp
 
 import (
-	"fmt"
 	docker "github.com/gitfuf/fuftest/fufproxy/docker"
-	"github.com/spf13/viper"
-	"io"
+	gproxy "github.com/google/tcpproxy"
 	"log"
-	"net"
+	"os"
+	"os/signal"
+	"strconv"
 )
 
-//start tcp server for cliport
-func StartServer() {
-	fmt.Println("Listen ", viper.GetString("cliport"))
-	ln, err := net.Listen("tcp", ":"+viper.GetString("cliport")) // "7816"
+var (
+	gp       gproxy.Proxy
+	GpRoutes map[string]docker.DockerItem
+)
+
+func StartGProxy() {
+	list, err := docker.DockerList()
 	if err != nil {
-		log.Fatal(err)
-		fmt.Println("listen err", err)
+		log.Fatal("No docker containers")
 	}
-	defer ln.Close()
-	for {
-		conn, err := ln.Accept()
+
+	var port string
+	GpRoutes = make(map[string]docker.DockerItem)
+
+	str := ""
+	for i, pgsql := range list {
+		if i < 10 {
+			str = "0"
+		}
+		port = "79" + str + strconv.Itoa(i)
+		gp.AddRoute(":"+port, gproxy.To(pgsql.ShortEndpoint()))
+		log.Printf("Add route: %s <-> %s ", port, pgsql.ShortEndpoint())
+		GpRoutes[port] = pgsql
+
+	}
+	//setup signal for init close operation
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs)
+	//Go routine to catch signal and call close
+	go func() {
+		s := <-sigs
+		log.Printf("RECEIVED SIGNAL: %s", s)
+		err := gp.Close()
 		if err != nil {
 			log.Fatal(err)
-			fmt.Println("listen err", err)
 		}
-		go handleConnection(conn)
-	}
-}
+		log.Println("successfull close google tcpproxy")
+		os.Exit(1)
+	}()
 
-func handleConnection(incoming_conn net.Conn) {
-	defer incoming_conn.Close()
-	//fmt.Println("handle connection ", incoming_conn.RemoteAddr())
-
-	endpoint := docker.EndPoint()
-	fmt.Println("endpoint : ", endpoint)
-	dest_conn, err := net.Dial("tcp", endpoint)
-	if err != nil {
-		log.Fatal(err)
-		fmt.Println("Dial err", err)
-	}
-	fmt.Println("connected to ", endpoint)
-	defer dest_conn.Close()
-	err = pipe(incoming_conn, dest_conn)
-	if err != nil {
-		fmt.Println("pipe err", err)
-	}
-}
-
-//for proxy forward
-func pipe(a, b net.Conn) error {
-	errors := make(chan error, 1)
-	copy := func(write, read net.Conn) {
-		_, err := io.Copy(write, read)
-		errors <- err
-	}
-	go copy(a, b)
-	go copy(b, a)
-	return <-errors
+	log.Println("Startup google tcpproxy")
+	log.Fatal(gp.Run())
 }
