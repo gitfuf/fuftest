@@ -1,4 +1,4 @@
-//Copyright © 2018 Fuf
+//Copyright © 2018 Fuf fufproxy
 //for work with tcp tasks
 package tcp
 
@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 )
 
 var (
@@ -38,7 +39,7 @@ func StartGProxy() {
 	}
 	//setup signal for init close operation
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs)
+	signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
 	//Go routine to catch signal and call close
 	go func() {
 		s := <-sigs
