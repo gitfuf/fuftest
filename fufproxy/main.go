@@ -1,4 +1,4 @@
-//Copyright © 2018 Fuf
+//Copyright © 2018 Fuf fufproxy
 package main
 
 import (
