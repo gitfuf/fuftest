@@ -32,7 +32,7 @@ func updateList() error {
 	data := string(out)
 	if len(data) != 0 {
 		//fmt.Println("docker list :", data)
-		fillList(data)
+		dockerlist = fillList(data)
 	} else {
 		return errors.New("No available routes")
 	}
@@ -40,10 +40,9 @@ func updateList() error {
 	return nil
 }
 
-func fillList(str string) {
+func fillList(str string) map[int]DockerItem {
 	dockerlist = make(map[int]DockerItem)
 	lines := strings.Split(str, "\n")
-
 	for i, line := range lines {
 		arr := strings.SplitN(line, " ", 4)
 		if len(arr) < 4 {
@@ -54,6 +53,7 @@ func fillList(str string) {
 		}
 		log.Println(dockerlist[i])
 	}
+	return dockerlist
 }
 
 func DockerList() (map[int]DockerItem, error) {

@@ -15,14 +15,8 @@ func TestFillList(t *testing.T) {
 	}
 	*/
 
-	testData := "postgres 03bf6d1c4232 pg_fuf1 127.0.0.1:3437->5432/tcp"
-	fillList(testData)
-
-	testDockerlist, err := DockerList()
-	if err != nil {
-		t.Errorf("nil docker list. stop")
-		return
-	}
+	testData := "postgres 03bf6d1c4232 pg_fuf1 127.0.0.1:3437->5432/tcp\npostgres 82a7cc1184b4 pg_fuf 127.0.0.1:3435->5432/tcp"
+	testDockerlist := fillList(testData)
 
 	if testDockerlist[0].Image != "postgres" {
 		t.Errorf("expect image = postgres, got %s", testDockerlist[0].Image)
@@ -38,6 +32,22 @@ func TestFillList(t *testing.T) {
 
 	if testDockerlist[0].Endpoint != "127.0.0.1:3437->5432/tcp" {
 		t.Errorf("expect endpoint = 127.0.0.1:3437->5432/tcp, got %s", testDockerlist[0].Name)
+	}
+
+	if testDockerlist[1].Image != "postgres" {
+		t.Errorf("expect image = postgres, got %s", testDockerlist[0].Image)
+	}
+
+	if testDockerlist[1].Id != "82a7cc1184b4" {
+		t.Errorf("expect id = 03bf6d1c4232, got %s", testDockerlist[0].Id)
+	}
+
+	if testDockerlist[1].Name != "pg_fuf" {
+		t.Errorf("expect image = pg_fuf, got %s", testDockerlist[0].Name)
+	}
+
+	if testDockerlist[1].Endpoint != "127.0.0.1:3435->5432/tcp" {
+		t.Errorf("expect endpoint = 127.0.0.1:3435->5432/tcp, got %s", testDockerlist[0].Name)
 	}
 
 }
