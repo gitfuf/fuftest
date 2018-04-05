@@ -49,7 +49,7 @@ func StartGProxy() {
 
 	GpRoutes, err = FillinGpRoutes(list)
 	if err != nil {
-		log.Fatalln("Google proxy wasn't run", err)
+		log.Println(err)
 	}
 
 	//setup signal for init close operation
