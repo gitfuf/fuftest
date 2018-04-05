@@ -19,16 +19,13 @@ var (
 	GpRoutes map[string]docker.DockerItem
 )
 
-func FillinGpRoutes() error {
-	list, err := docker.DockerList()
-	if err != nil {
-		log.Println("No docker containers")
-		return errors.New("No available routes")
-	}
-
+func FillinGpRoutes(list map[int]docker.DockerItem) (map[string]docker.DockerItem, error) {
 	var port string
-	GpRoutes = make(map[string]docker.DockerItem)
+	routes := make(map[string]docker.DockerItem)
 
+	if len(list) == 0 {
+		return nil, errors.New("No available routes")
+	}
 	str := ""
 	for i, pgsql := range list {
 		if i < 10 {
@@ -37,13 +34,20 @@ func FillinGpRoutes() error {
 		port = "79" + str + strconv.Itoa(i)
 		gp.AddRoute(":"+port, gproxy.To(pgsql.ShortEndpoint()))
 		log.Printf("Add route: %s <-> %s ", port, pgsql.ShortEndpoint())
-		GpRoutes[port] = pgsql
+		routes[port] = pgsql
 	}
-	return nil
+	return routes, nil
 }
 
+//TODO if no available route seach again in X minutes
 func StartGProxy() {
-	err := FillinGpRoutes()
+	list, err := docker.DockerList()
+	if err != nil {
+		log.Println("No docker containers")
+		//
+	}
+
+	GpRoutes, err = FillinGpRoutes(list)
 	if err != nil {
 		log.Fatalln("Google proxy wasn't run", err)
 	}
