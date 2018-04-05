@@ -49,10 +49,10 @@ func TestShortEndpoint(t *testing.T) {
 		Image:    "postgres",
 		Id:       "03bf6d1c4232",
 		Name:     "pg_fuf1",
-		Endpoint: "127.0.0.1:3435->5432/tcp"}
+		Endpoint: "127.0.0.1:3437->5432/tcp"}
 
 	short := entry.ShortEndpoint()
-	if short != "127.0.0.1:3435" {
-		t.Errorf("expect short endpoint = 127.0.0.1:3435, got %s", short)
+	if short != "127.0.0.1:3437" {
+		t.Errorf("expect short endpoint = 127.0.0.1:3437, got %s", short)
 	}
 }
