@@ -3,6 +3,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
@@ -32,6 +33,8 @@ func updateList() error {
 	if len(data) != 0 {
 		//fmt.Println("docker list :", data)
 		fillList(data)
+	} else {
+		return errors.New("No available routes")
 	}
 
 	return nil

@@ -2,18 +2,18 @@
 package main
 
 import (
+	"log"
+	"net/http"
+	"os"
+
 	httpfuf "github.com/gitfuf/fuftest/fufproxy/net/http"
 	tcpfuf "github.com/gitfuf/fuftest/fufproxy/net/tcp"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
-	"log"
-	"net/http"
-	"os"
 )
 
 func main() {
 	initConfig()
-
 	go tcpfuf.StartGProxy()
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -22,7 +22,6 @@ func main() {
 	router.HandleFunc("/askproxyport", httpfuf.GetProxyPort)
 
 	log.Fatal(http.ListenAndServe(":8888", router))
-
 }
 
 func initConfig() {

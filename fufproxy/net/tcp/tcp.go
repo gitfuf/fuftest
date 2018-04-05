@@ -3,13 +3,15 @@
 package tcp
 
 import (
-	docker "github.com/gitfuf/fuftest/fufproxy/docker"
-	gproxy "github.com/google/tcpproxy"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+
+	docker "github.com/gitfuf/fuftest/fufproxy/docker"
+	gproxy "github.com/google/tcpproxy"
 )
 
 var (
@@ -17,10 +19,11 @@ var (
 	GpRoutes map[string]docker.DockerItem
 )
 
-func StartGProxy() {
+func FillinGpRoutes() error {
 	list, err := docker.DockerList()
 	if err != nil {
-		log.Fatal("No docker containers")
+		log.Println("No docker containers")
+		return errors.New("No available routes")
 	}
 
 	var port string
@@ -35,8 +38,16 @@ func StartGProxy() {
 		gp.AddRoute(":"+port, gproxy.To(pgsql.ShortEndpoint()))
 		log.Printf("Add route: %s <-> %s ", port, pgsql.ShortEndpoint())
 		GpRoutes[port] = pgsql
-
 	}
+	return nil
+}
+
+func StartGProxy() {
+	err := FillinGpRoutes()
+	if err != nil {
+		log.Fatalln("Google proxy wasn't run", err)
+	}
+
 	//setup signal for init close operation
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
