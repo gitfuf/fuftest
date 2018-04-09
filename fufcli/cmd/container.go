@@ -1,4 +1,4 @@
-// Copyright © 2018 Fuf
+// Copyright © 2018 Fuf fufcli
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ func askDockerList() {
 	fmt.Println("Have next docker containers:")
 	for _, e := range docker.DockerList() {
 		fmt.Printf("image: %+v, id: %+v, name: %+v \n", e.Image, e.Id, e.Name)
+		log.Printf("image: %+v, id: %+v, name: %+v \n", e.Image, e.Id, e.Name)
 	}
 
 }

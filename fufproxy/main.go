@@ -1,39 +1,45 @@
-//Copyright © 2018 Fuf
+//Copyright © 2018 Fuf fufproxy
 package main
 
 import (
-	"fmt"
+	"log"
+	"net/http"
+	"os"
 
 	httpfuf "github.com/gitfuf/fuftest/fufproxy/net/http"
 	tcpfuf "github.com/gitfuf/fuftest/fufproxy/net/tcp"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
-	"log"
-	"net/http"
 )
 
 func main() {
 	initConfig()
+	go tcpfuf.StartGProxy()
 
-	go tcpfuf.StartServer()
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", httpfuf.IndexPage)
-	//router.HandleFunc("/dockerterm", setDockerTeminal)
 	router.HandleFunc("/getdockerls", httpfuf.GetDockerLs)
 	router.HandleFunc("/askproxyport", httpfuf.GetProxyPort)
 
 	log.Fatal(http.ListenAndServe(":8888", router))
-
 }
 
 func initConfig() {
-	fmt.Println("initConfig")
+
+	file, err := os.OpenFile("fufproxy.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("Failed to open log file :", err)
+	}
+
+	//mylog := log.New(file, "", log.Ldate|log.Ltime|log.Lshortfile)
+	log.SetOutput(file)
 
 	viper.AddConfigPath(".")
 	viper.SetConfigName("fufproxy")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Println("Using config file:", viper.ConfigFileUsed())
 	}
+
 }

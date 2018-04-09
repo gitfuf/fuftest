@@ -1,4 +1,4 @@
-// Copyright © 2018 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2018 Fuf fufcli
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ var proxyCmd = &cobra.Command{
 	Use:   "proxy",
 	Short: "get port to connect postgesql",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("proxy called: ", args)
+		log.Println("proxy called: ", args)
 		if len(args) > 0 { //todo check also inside dockeritem map
 			askProxyForConnection(args[0])
 		} else {
@@ -48,11 +48,10 @@ func askProxyForConnection(container string) {
 	body, err := httpfuf.SendRequest(request)
 	if err != nil {
 		log.Fatal(err)
-		fmt.Println("error2")
 	}
 	fmt.Printf("You can use in another terminal psql -h localhost - p %s etc \n", viper.GetString("port"))
 	port := fmt.Sprintf("%s", body)
-
+	log.Println("proxy sent port " + port)
 	tcpfuf.StartServer(port)
 
 }

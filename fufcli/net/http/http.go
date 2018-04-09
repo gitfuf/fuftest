@@ -1,9 +1,8 @@
-//Copyright © 2018 Fuf
+//Copyright © 2018 Fuf fufcli
 //work with http tasks
 package http
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ func SendRequest(req string) ([]byte, error) {
 	resp, err := http.Get(req)
 	if err != nil {
 		log.Fatal(err)
-		fmt.Println("error", err)
 	}
 
 	defer resp.Body.Close()

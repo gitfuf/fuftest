@@ -3,6 +3,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
@@ -20,7 +21,7 @@ var dockerlist map[int]DockerItem
 var chosenContainer string
 
 //Update or create new list of docker running containers
-func UpdateList() error {
+func updateList() error {
 	out, err := exec.Command("docker", "ps", "--filter", "status=running", "--format", "{{.Image}} {{.ID}} {{.Names}} {{.Ports}}").Output()
 	if err != nil {
 		fmt.Errorf("error running docker ps: %v", err)
@@ -31,16 +32,17 @@ func UpdateList() error {
 	data := string(out)
 	if len(data) != 0 {
 		//fmt.Println("docker list :", data)
-		fillList(data)
+		dockerlist = fillList(data)
+	} else {
+		return errors.New("No available routes")
 	}
 
 	return nil
 }
 
-func fillList(str string) {
+func fillList(str string) map[int]DockerItem {
 	dockerlist = make(map[int]DockerItem)
 	lines := strings.Split(str, "\n")
-
 	for i, line := range lines {
 		arr := strings.SplitN(line, " ", 4)
 		if len(arr) < 4 {
@@ -49,22 +51,24 @@ func fillList(str string) {
 		dockerlist[i] = DockerItem{
 			arr[0], arr[1], arr[2], arr[3],
 		}
-		//fmt.Println(dockerlist[i])
+		log.Println(dockerlist[i])
 	}
+	return dockerlist
 }
 
 func DockerList() (map[int]DockerItem, error) {
-	err := UpdateList()
+	err := updateList()
 	return dockerlist, err
 }
 
+/*
 func SetChosen(name string) {
 	chosenContainer = name
-	fmt.Println("chosen container = ", chosenContainer)
+	log.Println("chosen container = ", chosenContainer)
 }
-
+*/
 //return endpoint for chosen database container
-func EndPoint() string {
+/*func endPoint() string {
 	var endpoint string
 	for _, docker := range dockerlist {
 		fmt.Println("docker ", docker.Image, docker.Id, docker.Name)
@@ -76,6 +80,11 @@ func EndPoint() string {
 		}
 	}
 	return ""
+}
+*/
+func (d DockerItem) ShortEndpoint() string {
+	endpoint := d.Endpoint[0:strings.Index(d.Endpoint, "->")]
+	return endpoint
 }
 
 /*
